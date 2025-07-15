@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Simple Jenkins Backup Script
+# Backs up /var/lib/jenkins to /opt/backup-jenkins
+
+JENKINS_HOME="/var/lib/jenkins"
+BACKUP_DIR="/opt/backup-jenkins"
+DATE=$(date +%Y%m%d-%H%M%S)
+
+# Create backup directory
+mkdir -p "$BACKUP_DIR"
+
+# Stop Jenkins
+echo "Stopping Jenkins..."
+systemctl stop jenkins
+
+# Create backup
+echo "Creating backup..."
+tar -czf "$BACKUP_DIR/jenkins-backup-$DATE.tar.gz" -C /var/lib jenkins
+
+# Start Jenkins
+echo "Starting Jenkins..."
+systemctl start jenkins
+
+# Check if backup was successful
+if [ -f "$BACKUP_DIR/jenkins-backup-$DATE.tar.gz" ]; then
+    echo "Backup completed successfully!"
+    echo "Backup location: $BACKUP_DIR/jenkins-backup-$DATE.tar.gz"
+    echo "Backup size: $(du -sh $BACKUP_DIR/jenkins-backup-$DATE.tar.gz | cut -f1)"
+else
+    echo "Backup failed!"
+    exit 1
+fi
